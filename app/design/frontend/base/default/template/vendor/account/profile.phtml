@@ -1,0 +1,225 @@
+<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE_AFL.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/afl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Magento to newer
+ * versions in the future. If you wish to customize Magento for your
+ * needs please refer to http://www.magentocommerce.com for more information.
+ *
+ * @category    design
+ * @package     base_default
+ * @copyright   Copyright (c) 2013 Magento Inc. (http://www.magentocommerce.com)
+ * @license     http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ */
+?>
+<?php
+$_customer = $this->helper('customer')->getCustomer();
+$_billingAddress = $_customer->getDefaultBillingAddress();
+if (!$_billingAddress) {
+    $_billingAddress = new Varien_Object();
+    $_billingAddress->setId('new_100');
+}
+$_shippingAddress = $_customer->getDefaultShippingAddress();
+$_additionalAddresses = $_customer->getAdditionalAddresses();
+$_gallery = Mage::getModel('vendor/gallery')
+    ->getCollection()
+    ->addFieldToFilter('customer_id', array('eq' => $_customer->getId()));
+?>
+<div class="vendor_account_settings">
+    <?php echo $this->getMessagesBlock()->getGroupedHtml() ?>
+    <div class="row-fluid">
+        <div class="span2"></div>
+        <div class="span4">
+            <form class="account-info" method="post" action="<?php echo $this->getUrl('*/*/saveSettings') ?>" id="form-validate">
+                <input type="hidden" name="vendor_is_public" id="vendorIsPublic" value="<?php echo $_customer->getVendorIsPublic() ? 1 : 0 ?>" />
+                <div class="form-row ">
+                    <h3><?php echo $this->__('Connected Accounts') ?></h3>
+                    <div class="row-fluid"><div class="form-field span12">
+                           <img src="<?php echo $this->getSkinUrl('images/connect.png') ?>" />
+                        </div></div>
+                </div>
+                <div id="vendorAddresses">
+                    <div id="vendorDefaultAddress" class="vendorAddress">
+                        <div class="form-row">
+                            <h3><?php echo $this->__('Email') ?></h3>
+                            <input type="hidden" name="address[<?php echo $_billingAddress->getId() ?>][id]" value="<?php echo $_billingAddress->getId() ?>" />
+                            <input type="hidden" name="address[<?php echo $_billingAddress->getId() ?>][country_id]" value="US" />
+                            <input type="hidden" name="address[<?php echo $_billingAddress->getId() ?>][default_billing]" value="1" />
+                            <input type="hidden" name="address[<?php echo $_billingAddress->getId() ?>][default_shipping]" value="<?php echo $_billingAddress->getDefaultShipping() ? '1' : '0' ?>" />
+                            <div class="form-field full-width">
+                                <label for=""><?php echo $this->__('Current Email') ?></label>
+                                <input type="text" name="email" class="input-text required-entry" value="" />
+                            </div>
+                            <div class="form-field full-width">
+                                <label for=""><?php echo $this->__('New Email') ?></label>
+                                <input type="text" name="email" class="input-text required-entry" value="" />
+                            </div>
+                            <div class="form-field full-width">
+                                <label for=""><?php echo $this->__('Confirm Email') ?></label>
+                                <input type="text" name="email" class="input-text required-entry" value="" />
+                                <p><a href="#">Send Confirmation Email</a></p>
+                                <p>NOTE: Your email address will not change until you confirm it via email. </p>
+                                <p><a href="#">Cancel</a>&nbsp;&nbsp;&nbsp;<button class="button"><span><span>Update</span></span></button></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="vendorDefaultAddress" class="vendorAddress">
+                        <div class="form-row">
+                            <h3><?php echo $this->__('Password') ?></h3>
+                            <input type="hidden" name="address[<?php echo $_billingAddress->getId() ?>][id]" value="<?php echo $_billingAddress->getId() ?>" />
+                            <input type="hidden" name="address[<?php echo $_billingAddress->getId() ?>][country_id]" value="US" />
+                            <input type="hidden" name="address[<?php echo $_billingAddress->getId() ?>][default_billing]" value="1" />
+                            <input type="hidden" name="address[<?php echo $_billingAddress->getId() ?>][default_shipping]" value="<?php echo $_billingAddress->getDefaultShipping() ? '1' : '0' ?>" />
+                            <div class="form-field full-width">
+                                <label for=""><?php echo $this->__('Current Password') ?></label>
+                                <input type="text" name="email" class="input-text required-entry" value="" />
+                            </div>
+                            <div class="form-field full-width">
+                                <label for=""><?php echo $this->__('New Password') ?></label>
+                                <input type="text" name="email" class="input-text required-entry" value="" />
+                            </div>
+                            <div class="form-field full-width">
+                                <label for=""><?php echo $this->__('Confirm New Password') ?></label>
+                                <input type="text" name="email" class="input-text required-entry" value="" />
+                                <p><a href="#">Cancel</a>&nbsp;&nbsp;&nbsp;<button class="button"><span><span>Change Password</span></span></button></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+        <div class="span1"></div>
+        <div class="span4">
+            <div class="account-info">
+                <div class="form-row">
+                    <h3><?php echo $this->__('Payments') ?></h3>
+                    <div class="form-field full-width">
+                        <label for=""><?php echo $this->__('Where would you like to collect payments for rentals from your store?') ?></label>
+                        <select type="text" name="email" class="required-entry" value="" multiple="multiple" style="border: 1px solid #333;">
+                            <option>PayPal</option>
+                            <option>Bank Transfer</option>
+                            <option>Google Wallet</option>
+                        </select>
+                        <p><button class="button"><span><span>Save</span></span></button></p>
+                        <p><strong>NOTE:</strong> Payments will be processed once order has been returned.</p>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <h3><?php echo $this->__('Payments') ?></h3>
+                    <div class="form-field full-width">
+                        <label for=""><?php echo $this->__('Sign up for updates to recieve weekly or monthly emails on the latest products in your area. (based off your default address)') ?></label>
+                        <input type="checkbox"> <a href="#">Send me weekly updates</a><br />
+                        <input type="checkbox"> <a href="#">Send me monthly updates</a><br />
+                        <p><strong>NOTE:</strong> We do not share your email with any third party companies.</p>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <h3><?php echo $this->__('Credit Card 1') ?></h3>
+                    <div class="form-field full-width">
+                        <p>Susan Smith<br />1342 W. Cornerstone Drive
+                            Los Angeles CA, 90013</p>
+                        <p>VISA<br />
+                            *************4832</p>
+                        <p><button class="button"><span><span>Edit</span></span></button>&nbsp;&nbsp;&nbsp;<button class="button"><span><span>Delete</span></span></button>&nbsp;&nbsp;&nbsp;<button class="button"><span><span>Add Card</span></span></button></p>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <h3><?php echo $this->__('Close Account') ?></h3>
+                    <div class="form-field full-width">
+                        <p>Your  listings won't appear anywhere on Hostess to Hostess. People who try to view your listings will see a message that the page is not available. You can reopen your account any time.If you want to reopen your account, simply sign in when you want to return. No one will be able to use your username, and your account settings will remain intact. </p>
+                        <p><button class="button"><span><span>Close Account</span></span></button></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="span1"></div>
+    </div>
+</div>
+<script type="text/javascript">
+    //<![CDATA[
+    var dataForm = new VarienForm('form-validate', true);
+    // Add address template
+    var newAddressTemplate = '<div class="vendorAddress">'
+        +    '<div class="form-row">'
+        +        '<h3><?php echo $this->__('Additional Address') ?> {{addressNum}}</h3>'
+        +        '<input type="hidden" name="address[{{index}}][id]" value="{{index}}" />'
+        +        '<input type="hidden" name="address[{{index}}][country_id]" value="US" />'
+        +        '<input type="hidden" name="address[{{index}}][default_billing]" value="0" />'
+        +        '<input type="hidden" name="address[{{index}}][default_shipping]" value="0" />'
+        +        '<div class="row-fluid">'
+        +            '<div class="form-field span6">'
+        +                '<label for=""><?php echo $this->__('First Name*') ?></label>'
+        +                '<input type="text" name="address[{{index}}][firstname]" class="input-text required-entry" value="" />'
+        +            '</div>'
+        +            '<div class="form-field span6">'
+        +                '<label for=""><?php echo $this->__('Last Name*') ?></label>'
+        +                '<input type="text" name="address[{{index}}][lastname]" class="input-text required-entry" value="" />'
+        +            '</div>'
+        +        '</div>'
+        +        '<div class="form-field full-width">'
+        +            '<label for=""><?php echo $this->__('Address*') ?></label>'
+        +            '<input type="text" name="address[{{index}}][street][]" class="input-text required-entry" value="" />'
+        +        '</div>'
+        +        '<div class="row-fluid">'
+        +            '<div class="form-field span5">'
+        +                '<label for=""><?php echo $this->__('City*') ?></label>'
+        +                '<input type="text" name="address[{{index}}][city]" class="input-text required-entry" value="" />'
+        +            '</div>'
+        +            '<div class="form-field span3">'
+        +                '<label for=""><?php echo $this->__('State*') ?></label>'
+        +                '<input type="text" name="address[{{index}}][region]" class="input-text required-entry" value="" />'
+        +            '</div>'
+        +            '<div class="form-field span4">'
+        +                '<label for=""><?php echo $this->__('Zipcode*') ?></label>'
+        +                '<input type="text" name="address[{{index}}][postcode]" class="input-text required-entry" value="" />'
+        +            '</div>'
+        +        '</div>'
+        +        '<div class="form-field full-width">'
+        +            '<label for=""><?php echo $this->__('Contact Phone Number *') ?></label>'
+        +            '<input type="text" name="address[{{index}}][telephone]" class="input-text required-entry" value=""   />'
+        +        '</div>'
+        +    '</div>'
+        +'</div>';
+    var addressTemplate = new Template(newAddressTemplate, new RegExp('(^|.|\\r|\\n)({{\\s*(\\w+)\\s*}})', ""));
+    // Add address function
+    var newAddressIncrement = 1000;
+    function addAddress()
+    {
+        var addressHtml = addressTemplate.evaluate({
+            index: 'new_'+newAddressIncrement,
+            addressNum: $$('.vendorAddress').length
+        });
+        $('vendorAddresses').insert({bottom: addressHtml});
+        newAddressIncrement++;
+    }
+    // Make public
+    function makePublic()
+    {
+        $('vendorIsPublic').value = 1;
+        dataForm.submit();
+    }
+    // Make private
+    function makePrivate()
+    {
+        $('vendorIsPublic').value = 0;
+        dataForm.submit();
+    }
+    // Avatar
+    var avatarForm = new VarienForm('vendorAvatarForm', true);
+    // Gallery
+    var galleryForm = new VarienForm('vendorGalleryForm', true);
+    //]]>
+</script>

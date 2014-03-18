@@ -1,0 +1,74 @@
+<?php
+	$_zipCodes = array();
+	if (isset($_GET['zip'])) {
+		$_zipCodes = $_GET['zip'];
+	}
+?>
+<div class="zip_layered">
+	<form id="zip_filter_container">
+		<?php foreach ($_zipCodes AS $_i => $_code) : ?>
+			<div class="zip_filter_item">
+				<div class="row-fluid">
+					<div class="span6"><input type="text" name="zip[<?php echo $_i ?>][code]" value="<?php echo $_code['code'] ?>" /></div>
+					<div class="span5"><select name="zip[<?php echo $_i ?>][distance]">
+						<option value="5" <?php if ( $_code['distance'] == 5) : ?>selected="selected"<?php endif; ?>>5 miles</option>
+						<option value="10" <?php if ( $_code['distance'] == 10) : ?>selected="selected"<?php endif; ?>>10 miles</option>
+						<option value="15" <?php if ( $_code['distance'] == 15) : ?>selected="selected"<?php endif; ?>>15 miles</option>
+					</select></div>
+					<div class="span1 a-right"><a onclick="removeZip(this); return false;" href="#" class="zip_filter_remove">[x]</a></div>
+				</div>
+			</div>
+		<?php endforeach; ?>
+	</form>
+	<div class="row-fluid">
+		<div class="span6">
+			<a href="#" id="add_zip">Add</a>
+		</div>
+		<div class="span6 a-right">
+			<button id="search_zip" name="search_zip" type="button" class="button"><span><span><?php echo $this->__('Search') ?></span></span></button>
+		</div>
+	</div>
+	
+</div>
+<script type="text/javascript">
+	<?php
+		$params = trim(Mage::helper('layerednavigationajax/data')->prepareParams($this->getRequest()->getParams()));
+	?>
+	var zipSearchParams = "<?php echo trim($params); ?>";
+    zipSearchParams = $jq.trim(zipSearchParams);
+	$jq('#search_zip').on('click', function() {
+		var zipParams = $('zip_filter_container').serialize();
+		var urlFilter = '<?php echo $baseUrl; ?>?'+zipParams+zipSearchParams;
+        ajaxFilter(urlFilter);
+        return false;
+	});
+	$jq('#add_zip').on('click', function() {
+		addZip();
+		return false;
+	});
+	var zipCount = $$('.zip_filter_item').length;
+	function addZip()
+	{
+		zipCount++;
+		var index = zipCount;
+		var html = '<div class="zip_filter_item">'
+		html += '<div class="row-fluid">';
+			html += '<div class="span6">';
+				html += '<input type="text" name="zip['+index+'][code]" />';
+			html += '</div>';
+			html += '<div class="span5">';
+				html += '<select name="zip['+index+'][distance]"><option value="5">5 miles</option><option value="10">10 miles</option><option value="15">15 miles</option></select>';
+			html += '</div>';
+			html += '<div class="span1 a-right">';
+				html += '<a class="zip_filter_remove" href="#" onclick="removeZip(this); return false;">[x]</a>';
+			html += '</div>';
+		html += '</div>';
+		html += '</div>';
+		$('zip_filter_container').insert(html);
+		return;
+	}
+	function removeZip(element)
+	{
+		$(element).up('.zip_filter_item').remove();
+	}
+</script>

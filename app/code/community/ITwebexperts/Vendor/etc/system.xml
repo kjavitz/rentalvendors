@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<config>
+    <sections>
+        <vendor translate="label" module="vendor">
+            <label><![CDATA[Vendor]]></label>
+            <tab>sales_igniter_tab</tab>
+            <frontend_type>text</frontend_type>
+            <sort_order>200</sort_order>
+            <show_in_default>1</show_in_default>
+            <show_in_website>1</show_in_website>
+            <show_in_store>1</show_in_store>
+            <groups>
+                <general translate="label">
+                    <label><![CDATA[General]]></label>
+                    <sort_order>10</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+                        <comission translate="label tooltip">
+                            <label><![CDATA[Comission Rate]]></label>
+                            <tooltip><![CDATA[Commission rate for the vendors.]]></tooltip>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>10</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <can_be_empty>0</can_be_empty>
+                        </comission>
+                    </fields>
+                </general>
+            </groups>
+        </vendor>
+    </sections>
+</config>

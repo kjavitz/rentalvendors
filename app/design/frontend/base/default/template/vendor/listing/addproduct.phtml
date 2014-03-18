@@ -1,0 +1,500 @@
+<?php
+    $_product = $this->getProduct() ? $this->getProduct() : new Varien_Object();
+    $_categoryIds = $_product->getCategoryIds() ? $_product->getCategoryIds() : array();
+    $_categories = $this->getStoreCategories();
+    $_subCategoriesJSON = array();
+    $_subSubCategoriesJSON = array();
+    foreach ($_categories AS $_topCategory) {
+        $_subCategoriesJSON[$_topCategory->getId()] = array();
+        $_children = $this->getChildCategories($_topCategory);
+        foreach ($_children AS $_child) {
+            $_subCategoriesJSON[$_topCategory->getId()][] = array(
+                'id' => $_child->getId(),
+                'name' => $_child->getName()
+            );
+            $_subChildren = $this->getChildCategories($_child);
+            $_subSubCategoriesJSON[$_child->getId()] = array();
+            foreach ($_subChildren AS $_subChild) {
+	            $_subSubCategoriesJSON[$_child->getId()][] = array(
+	                'id' => $_subChild->getId(),
+	                'name' => $_subChild->getName()
+	            );
+            }
+        }
+    }
+    $_subCategoriesJSON = Zend_Json::encode($_subCategoriesJSON);
+    $_subSubCategoriesJSON = Zend_Json::encode($_subSubCategoriesJSON);
+    $_reservations = $this->getReservations();
+    $_blackoutDates = $this->getBlackoutDates();
+?>
+<div class="vendor-add-product">
+    <br />
+    <?php echo $this->getMessagesBlock()->getGroupedHtml() ?>
+    <br />
+    <div class="row-fluid">
+        <div class="span4">
+
+            <p><strong><?php echo $this->__('Primary photo') ?></strong>&nbsp;&nbsp;&nbsp;<!--a href="#vendorPhoto" id="editPhotoLink"><?php echo $this->__('Choose file & upload') ?></a--></p>
+            <form method="post" target="ajaxIframe" enctype="multipart/form-data" action="<?php echo $this->getUrl('vendor/listing/uploadphoto') ?>" id="vendorPhoto" >
+                <input type="hidden" name="base_image" value="1" />
+                <p><input type="file" name="image" class="required-entry" /><button type="button" class="button" onclick="photoForm.submit();"><span><span><?php echo $this->__('Upload') ?></span></span></button></p>
+            </form>
+            <div class="vendor-product-img" id="vendorProductImg"><?php if ($_product->getImage()) : ?>
+                <img src="<?php echo Mage::getBaseUrl('media') .DS. 'catalog' . DS . 'product' . DS . $_product->getImage() ?>" />
+            <?php endif; ?></div>
+            
+            <p><strong><?php echo $this->__('Additional photos') ?></strong></p>
+            <ul class="vendor-product-images" id="vendorProductImages">
+
+            </ul>
+            <form method="post" target="ajaxIframe2" enctype="multipart/form-data" action="<?php echo $this->getUrl('vendor/listing/multiupload') ?>" id="vendorAdditional">
+                <input type="hidden" name="base_image" value="0" />
+                <input type="hidden" name="multiply" value="1" />
+                <p><input type="file" name="image_0" class="required-entry" /></p>
+                <div id="additionalImageFields"></div>
+                <p><a href="#" id="additionalImageFieldsAdd"><?php echo $this->__('+ Add') ?></a></p>
+                <p><button type="button" class="button" onclick="additionalForm.submit();"><span><span><?php echo $this->__('Upload') ?></span></span></button></p>
+            </form>
+            <div class="ajax-iframe"><iframe id="ajaxIframe" name="ajaxIframe"></iframe><iframe id="ajaxIframe2" name="ajaxIframe2"></iframe></div>
+            <p><h3><?php echo $this->__('Please add filters for this item:') ?></h3></p>
+            <div id="vendorFilters">
+                <p>
+                    <strong><?php echo $this->__('Color') ?></strong><br />
+                    <?php
+                        $_attribute = Mage::getSingleton('eav/config')->getAttribute('catalog_product', 'vendor_color');
+                        $_options = array();
+                        if ($_attribute->usesSource()) {
+                            $_options = $_attribute->getSource()->getAllOptions(false);
+                        }
+                        $_color = array();
+                        if ($_product->getVendorColor()) {
+                            $_color = explode(',', $_product->getVendorColor());
+                        }
+                    ?>
+                    <?php foreach ($_options AS $_option) : ?>
+                        <input type="checkbox" class="vendor-style-box" value="<?php echo $_option['value'] ?>" name="vendor_color[]"  <?php if (in_array($_option['value'], $_color)) : ?>checked="checked" <?php endif; ?>/> <label><?php echo $_option['label'] ?></label><br />
+                    <?php endforeach; ?>
+                </p>
+                <p>
+                    <strong><?php echo $this->__('Style') ?></strong><br />
+                    <?php
+                        $_attribute = Mage::getSingleton('eav/config')->getAttribute('catalog_product', 'vendor_style');
+                        $_options = array();
+                        if ($_attribute->usesSource()) {
+                            $_options = $_attribute->getSource()->getAllOptions(false);
+                        }
+                        $_style = array();
+                        if ($_product->getVendorStyle()) {
+                            $_style = explode(',', $_product->getVendorStyle());
+                        }
+                    ?>
+                    <?php foreach ($_options AS $_option) : ?>
+                        <input type="checkbox" class="vendor-style-box" value="<?php echo $_option['value'] ?>" name="vendor_style[]"  <?php if (in_array($_option['value'], $_style)) : ?>checked="checked" <?php endif; ?>/> <label><?php echo $_option['label'] ?></label><br />
+                    <?php endforeach; ?>
+                </p>
+                <p>
+                    <strong><?php echo $this->__('Please add tags for this item:') ?></strong><br />
+                    <textarea name="productTagName"></textarea>
+                </p>
+                <?php echo $this->getChildHtml('tagProductList') ?>
+            </div>
+        </div>
+        <div class="span8">
+            <form method="post" action="<?php echo $this->getUrl('vendor/listing/saveProduct') ?>" id="attributesForm">
+                <?php if ($_product->getId()) : ?>
+                    <input type="hidden" name="id" value="<?php echo $_product->getId() ?>" ?>
+                <?php endif; ?>
+                <input type="hidden" name="media_gallery[images]" id="mediaGalleryImages" />
+                <input type="hidden" name="media_gallery[values]" id="mediaGalleryValues" />
+                <div class="product-form-row vendor-product-categories">
+                    <p>
+                        <strong><?php echo $this->__('Category') ?></strong>
+                        <select name="category_ids[]" id="vendorTopCategory">
+                            <?php foreach ($_categories AS $_category) : ?>
+                                <option value="<?php echo $_category->getId() ?>"<?php if (in_array($_category->getId(), $_categoryIds)) : ?> selected="selected"<?php endif; ?>><?php echo $_category->getName() ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </p>
+                    <p>
+                        <strong><?php echo $this->__('2nd Level Category') ?></strong>
+                        <span id="vendorSubCategory"><select id="vendorSubCategorySelect"><option></option></select></span>
+                    </p>
+                    <p>
+                    	<strong><?php echo $this->__('3rd Level Category') ?></strong>
+                        <span id="vendorSubSubCategory"><select><option></option></select></span>
+                    </p>
+                </div>
+                <div class="product-form-row">
+                    <p><strong><?php echo $this->__('Title') ?></strong></p>
+                    <p><input type="text" class="input-text required-entry" name="name" value="<?php echo $_product->getName() ?>" /></p>
+                </div>
+                <div class="product-form-row">
+                    <p><strong><?php echo $this->__('Description') ?></strong></p>
+                    <p><textarea style="height: 100px" class="required-entry" name="description"><?php echo $_product->getShortDescription() ?></textarea></p>
+                </div>
+                <div class="product-form-row">
+                    <p><strong><?php echo $this->__('Product Specs') ?></strong></p>
+                    <p><textarea style="height: 100px" name="vendor_product_spec"><?php echo $_product->getDescription() ?></textarea></p>
+                </div>
+                <div class="product-form-row">
+                    <p><strong><?php echo $this->__('Rental Terms') ?></strong></p>
+                    <p><textarea style="height: 100px" name="vendor_rental_terms"><?php echo $_product->getData('vendor_rental_terms') ?></textarea></p>
+                </div>
+                <div class="product-form-row">
+                    <div class="row-fluid">
+                        <div class="span3">
+                            <label for="">Qty Available</label><br />
+                            <input type="text" class="input-text required-entry validate-number" name="payperrentals_quantity" value="<?php echo $_product->getData('payperrentals_quantity') ? $_product->getData('payperrentals_quantity') : 1 ?>" />
+                        </div>
+                        <div class="span5">
+                            <label for="">Replacement Price</label><br />
+                            <input type="text" class="input-text required-entry validate-currency-dollar" name="payperrentals_buyoutprice" value="$<?php echo floatval($_product->getData('payperrentals_buyoutprice')) ?>" />
+                        </div>
+                        <div class="span4">
+                            <?php
+                                $_resPrice = 0;
+                                if ($_product->getId()) {
+                                    $_priceList = ITwebexperts_Payperrentals_Helper_Price::getPriceList($_product);
+                                    foreach ($_priceList AS $_price) {
+                                        if ($_resPrice < $_price['price']) {
+                                            $_resPrice = $_price['price'];
+                                        }
+                                    }
+                                }
+                                $_resPrice = floatval($_resPrice);
+                            ?>
+                            <label for="">Rental Fee</label><br />
+                            <input type="text" class="input-text required-entry validate-currency-dollar" name="res_prices" style="width: 60%" value="$<?php echo (float)$_resPrice ?>" /> / per day
+                        </div>
+                    </div>
+                </div>
+                <div class="product-form-row">
+                    <p><strong><?php echo $this->__('Blackout Dates') ?></strong></p>
+                    <p><?php echo $this->__('Your blackout dates are listed below. Rentals are highlighted for you. You may blackout a rental of this product by adding a new blackout date below. Please note that you may not blackout this product if it’s already been rented during that time.') ?></p>
+                    <table class="vendor_blackout_dates" id="vendorBlackoutDates">
+                        <thead><tr>
+                            <th><?php echo $this->__('Dates') ?></th>
+                            <th><?php echo $this->__('QTY') ?></th>
+                            <th><?php echo $this->__('Blackout type') ?></th>
+                            <th><?php echo $this->__('Action') ?></th>
+                        </tr></thead>
+                        <tbody id="vendorBlackoutBody">
+                            <?php foreach ($_reservations AS $_reservation) : ?>
+                                <tr class="vendor_blackout_reservation">
+                                    <td>
+                                        <?php echo date('F d,Y', strtotime($_reservation->getStartDate())) ?>
+                                        -
+                                        <?php echo date('F d,Y', strtotime($_reservation->getEndDate())) ?>
+                                    </td>
+                                    <td><?php echo $_reservation->getQty() ?></td>
+                                    <td><?php echo $this->__('Rented') ?></td>
+                                    <td><a target="_blank" href="<?php echo $this->getUrl('vendor/listing/reservations') ?>"><?php echo $this->__('View') ?></a></td>
+                                </tr>
+                            <?php endforeach; ?>
+                            <?php $blackoutIndex = 0 ?>
+                            <?php foreach ($_blackoutDates AS $_blackoutDate) : ?>
+                                <tr>
+                                    <td>
+                                        <?php echo date('F d,Y', strtotime($_blackoutDate->getDisabledFrom())) ?>
+                                        -
+                                        <?php echo date('F d,Y', strtotime($_blackoutDate->getDisabledTo())) ?>
+                                        <input type="hidden" name="res_blackout_dates[<?php echo $blackoutIndex ?>][excludefrom]" value="<?php echo $_blackoutDate->getDisabledFrom() ?>" />
+                                        <input type="hidden" name="res_blackout_dates[<?php echo $blackoutIndex ?>][excludeto]" value="<?php echo $_blackoutDate->getDisabledTo() ?>" />
+                                        <input type="hidden" name="res_blackout_dates[<?php echo $blackoutIndex ?>][qty]" value="<?php echo $_blackoutDate->getQty() ?>" />
+                                        <input type="hidden" name="res_blackout_dates[<?php echo $blackoutIndex ?>][website_id]" value="0" />
+
+                                    </td>
+                                    <td><?php echo $_blackoutDate->getQty() ?></td>
+                                    <td><?php echo $this->__('Personal use') ?></td>
+                                    <td><a class="blackoutDeleteButton" href="#"><?php echo $this->__('Delete') ?></a></td>
+                                </tr>
+                                <?php $blackoutIndex++ ?>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                    <div id="addBlackoutDate">
+                        <div class="row-fluid">
+                            <div class="span3">
+                                <input type="text" class="input-text datePicker" id="addBlackoutDateStart" />
+                            </div>
+                            <div class="span3">
+                                <input type="text" class="input-text datePicker" id="addBlackoutDateEnd" />
+                            </div>
+                            <div class="span1">
+                                <input type="text" class="input-text" id="addBlackoutDateQty" value="1" />
+                            </div>
+                            <div class="span3">
+                                <button type="button" class="button" id="addBlackoutDateAdd" onclick="addBlackout();"><span><span><?php echo $this->__('Add') ?></span></span></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="product-form-row addproduct-actions">
+                    <div class="ajax-iframe" id="vendorFiltersCloned"></div>
+                    <?php if ($_product->getId()) : ?>
+                        <button class="button gray-button" type="button" onclick="window.location.href = '<?php echo $this->getUrl('vendor/listing/delete', array('id' => $_product->getId())) ?>';"><span><span><?php echo $this->__('DELETE LISTING') ?></span></span></button>
+                    <?php endif; ?>
+                    <button class="button" onclick="submitAttributes();" type="button"><span><span><?php echo $this->__('SAVE LISTING') ?></span></span></button>
+                    &nbsp;&nbsp;
+                    <input type="checkbox" name="status" value="1" <?php if (!$_product->getId() || $_product->getStatus() == 1) : ?>checked="checked"<?php endif; ?> /> <label><?php echo $this->__('Activate Listing') ?></label>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<?php
+    //var_dump($_product->getMediaGallery('images'));
+?>
+<script type="text/javascript">
+	var additionalImagesIndex = 1;
+    // Dom ready
+    $(document).observe("dom:loaded", function() {
+        /*$('editPhotoLink').observe('click', function(e) {
+            //Event.stop(e);
+            $('vendorPhoto').show();
+        });*/
+        $('vendorTopCategory').observe("change", function() {
+            updateSubCategory($('vendorTopCategory').value);
+        });
+        $('vendorSubCategorySelect').observe("change", function() {
+            updateSubSubCategory($('vendorSubCategory').value);
+        });
+        updateSubCategory($('vendorTopCategory').value);
+        $$('.blackoutDeleteButton').each(function(el) {
+            $(el).observe('click', function(e) {
+                Event.stop(e);
+                $(this).up().up().remove();
+            });
+        });
+        
+        $('additionalImageFieldsAdd').observe('click', function(event) {
+        	Event.stop(event);
+	        $('additionalImageFields').insert({bottom: '<p><input type="file" name="image_'+additionalImagesIndex+'" class="required-entry" /> <a href="#" onclick="removeAdditionalImage(this); return false;">[x]</a></p>'});
+	        additionalImagesIndex++;
+        });
+        
+        <?php if ($_categoryIds) : ?>
+            var categoryIds = <?php echo Zend_Json::encode($_categoryIds) ?>;
+            $$('#vendorSubCategory option').each(function(el) {
+                for (var i = 0; i < categoryIds.length; i++) {
+                    if (el.value == categoryIds[i]) {
+                        el.selected = true;
+                        break;
+                    }
+                }
+            });
+            $$('#vendorSubSubCategory option').each(function(el) {
+                for (var i = 0; i < categoryIds.length; i++) {
+                    if (el.value == categoryIds[i]) {
+                        el.selected = true;
+                        break;
+                    }
+                }
+            });
+
+        <?php endif; ?>
+        updateMediaFields();
+        updateAdditionalImages();
+    });
+    
+    
+    function removeAdditionalImage(el) {
+	    $(el).up('p').remove();
+	    return false;
+    }
+    
+    // Attributes
+    var attributesForm = new VarienForm('attributesForm', true);
+    function submitAttributes()
+    {
+        $('vendorFiltersCloned').insert($('vendorFilters'));
+        attributesForm.submit();
+    }
+    // Avatar
+    var photoForm = new VarienForm('vendorPhoto', true);
+    var additionalForm = new VarienForm('vendorAdditional', true);
+    // Upload callback
+    function onPhotoUploaded(response)
+    {
+        if (response.error == 0) {
+            // add to media
+            mediaGalleryImages.push({
+                'url' : response.url,
+                'file' : response.file,
+                'label' : '',
+                'position' : 1,
+                'disabled' : 0,
+                'removed'  : 0
+            });
+            if (response.base_image == 1) {
+                // remove old main image
+                for (var i = 0; i < mediaGalleryImages.length; i++) {
+                    if (mediaGalleryImages[i].file == mediaGalleryValues.image) {
+                        if (mediaGalleryImages[i]['value_id'] != undefined) {
+                            mediaGalleryImages[i]['removed'] = 1;
+                        } else {
+                            mediaGalleryImages.splice(i, 1);
+                        }
+                        break;
+                    }
+                }
+                // update attributes
+                mediaGalleryValues.image = response.file;
+                mediaGalleryValues.small_image = response.file;
+                mediaGalleryValues.thumbnail = response.file;
+                updateMediaFields();
+                // updat html
+                $('vendorProductImg').innerHTML = '<img src="'+response.url+'" />';
+                $('vendorPhoto').reset();
+                //$('vendorPhoto').hide();
+            } else {
+                updateMediaFields();
+                $('vendorAdditional').reset();
+            }
+            updateAdditionalImages();
+        } else {
+            alert('<?php echo $this->__('Error') ?>');
+        }
+    }
+    // Update sub category
+    var subCategories = <?php echo $_subCategoriesJSON ?>;
+    var subSubCategories = <?php echo $_subSubCategoriesJSON ?>;
+    function updateSubCategory(parentId) {
+    
+        if (subCategories[parentId].length) {
+            var html = '<select name="category_ids[]" id="vendorSubCategorySelect">';
+        } else {
+            var html = '<select name="category_ids[]" disabled="disabled" id="vendorSubCategorySelect">';
+        }
+        for (var i = 0; i < subCategories[parentId].length; i++) {
+            html += '<option value="'+subCategories[parentId][i]['id']+'">'+subCategories[parentId][i]['name']+'</option>';
+        }
+        html += '</select>';
+        $('vendorSubCategory').innerHTML = html;
+        $('vendorSubCategorySelect').observe("change", function() {
+            updateSubSubCategory($('vendorSubCategorySelect').value);
+        });
+        updateSubSubCategory($('vendorSubCategorySelect').value);
+    }
+    function updateSubSubCategory(parentId) {
+	    if (subSubCategories[parentId].length) {
+            var html = '<select name="category_ids[]">';
+        } else {
+            var html = '<select name="category_ids[]" disabled="disabled">';
+        }
+        for (var i = 0; i < subSubCategories[parentId].length; i++) {
+            html += '<option value="'+subSubCategories[parentId][i]['id']+'">'+subSubCategories[parentId][i]['name']+'</option>';
+        }
+        html += '</select>';
+        $('vendorSubSubCategory').innerHTML = html;
+    }
+    // Images
+    <?php if ($_product->getId()) : ?>
+        var mediaGalleryImages = <?php echo Zend_Json::encode($_product->getMediaGallery('images')) ?>;
+        var mediaGalleryValues = {
+            'image' : '<?php echo $_product->getImage() ?>',
+            'small_image' : '<?php echo $_product->getSmallImage() ?>',
+            'thumbnail' : '<?php echo $_product->getImage() ?>'
+        };
+    <?php else: ?>
+        var mediaGalleryImages = new Array();
+        var mediaGalleryValues = {"image":"no_selection","small_image":"no_selection","thumbnail":"no_selection"};
+    <?php endif; ?>
+
+    function updateMediaFields()
+    {
+        $('mediaGalleryImages').value = Object.toJSON(mediaGalleryImages);
+        $('mediaGalleryValues').value = Object.toJSON(mediaGalleryValues);
+    }
+
+    function updateAdditionalImages()
+    {
+        var html = '';
+        var b = 0;
+        for (var i = 0; i < mediaGalleryImages.length; i++) {
+            if (mediaGalleryImages[i].file != mediaGalleryValues.image) {
+                if (mediaGalleryImages[i]['removed'] != undefined) {
+                    if (mediaGalleryImages[i]['removed'] == 1) {
+                        continue;
+                    }
+                }
+                var css = '';
+                if (b % 3 == 0) {
+                    css = 'style="clear: both"';
+                }
+                if (mediaGalleryImages[i].url != undefined) {
+                    var imgUrl = mediaGalleryImages[i].url;
+                } else {
+                    var imgUrl = '<?php echo Mage::getBaseUrl('media') .DS. 'catalog' . DS . 'product' ?>'+mediaGalleryImages[i].file;
+                }
+                html += '<li '+css+'><img src="'+imgUrl+'" /></li>';
+                b++;
+            }
+
+        }
+        $('vendorProductImages').innerHTML = html;
+    }
+    /* Blackout dates */
+    jQuery('.datePicker').datepick({
+        minDate: 0,
+        monthsToShow: <?php echo Mage::getStoreConfig(ITwebexperts_Payperrentals_Helper_Data::XML_PATH_APPEARANCE_CALENDAR_PAGES);?>,
+        rangeSelect: false,
+        changeMonth: false,
+        firstDay: 0,
+        changeYear: false,
+        numberOfMonths: <?php echo Mage::getStoreConfig(ITwebexperts_Payperrentals_Helper_Data::XML_PATH_APPEARANCE_CALENDAR_PAGES);?>,
+        showStatus: true,
+        dateFormat: 'mm/dd/yy'
+    });
+    var blackoutIndex = <?php echo $blackoutIndex ?>;
+    var blackoutRowTemplate = '<tr>'
+        +'<td>'
+            +'{{disabledFromFormatted}}'
+            +' - '
+            +'{{disabledToFormatted}}'
+            +'<input type="hidden" name="res_blackout_dates[{{blackoutIndex}}][excludefrom]" value="{{disabledFrom}}" />'
+            +'<input type="hidden" name="res_blackout_dates[{{blackoutIndex}}][excludeto]" value="{{disabledTo}}" />'
+            +'<input type="hidden" name="res_blackout_dates[{{blackoutIndex}}][qty]" value="{{qty}}" />'
+            +'<input type="hidden" name="res_blackout_dates[{{blackoutIndex}}][website_id]" value="0" />'
+        +'</td>'
+        +'<td>{{qty}}</td>'
+        +'<td>Personal use</td>'
+        +'<td><a class="blackoutDeleteButton" href="#">Delete</a></td>'
+    +'</tr>';
+    var blackoutRowTemplate = new Template(blackoutRowTemplate, new RegExp('(^|.|\\r|\\n)({{\\s*(\\w+)\\s*}})', ""));
+    function addBlackout()
+    {
+        if (!$('addBlackoutDateStart').value) {
+            alert('Please enter blackout start date.');
+            return false;
+        }
+        if (!$('addBlackoutDateEnd').value) {
+            alert('Please enter blackout end date.');
+            return false;
+        }
+        if (!parseInt($('addBlackoutDateQty').value)) {
+            alert('Please enter correct QTY.');
+            return false;
+        }
+        var startDate = new Date($('addBlackoutDateStart').value);
+        var endDate = new Date($('addBlackoutDateEnd').value);
+        if (!(startDate < endDate)) {
+	        alert('End date should be greate than start date.');
+	        return false;
+        }
+        $('addBlackoutDateQty').value = parseInt($('addBlackoutDateQty').value);
+        var blackoutHtml = blackoutRowTemplate.evaluate({
+            blackoutIndex: blackoutIndex,
+            disabledFrom: $('addBlackoutDateStart').value,
+            disabledTo: $('addBlackoutDateEnd').value,
+            disabledFromFormatted: $('addBlackoutDateStart').value,
+            disabledToFormatted: $('addBlackoutDateEnd').value,
+            qty: $('addBlackoutDateQty').value
+        });
+        $('vendorBlackoutBody').insert({bottom: blackoutHtml});
+        $('addBlackoutDateStart').value = '';
+        $('addBlackoutDateEnd').value = '';
+        $('addBlackoutDateQty').value = '1';
+        blackoutIndex++;
+    }
+</script>

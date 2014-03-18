@@ -1,0 +1,346 @@
+<?php
+    $_orderCollection = $this->getOrderCollection();
+    $_itemsCollection = $this->getItemsCollection();
+    $_orderBy = '';
+    if (isset($_GET['order'])) {
+	    $_orderBy = $_GET['order'];
+    }
+    $_orderDirection = 'desc';
+    if (isset($_GET['dir'])) {
+	    $_orderDirection = $_GET['dir'];
+    }
+    $start_turnover_before = '';
+    if (isset($_GET['start_turnover_before'])) {
+	    $start_turnover_before = $_GET['start_turnover_before'];
+    }
+    $end_turnover_after = '';
+    if (isset($_GET['end_turnover_after'])) {
+	    $end_turnover_after = $_GET['end_turnover_after'];
+    }
+    $start_order_id = '';
+    if (isset($_GET['start_order_id'])) {
+	    $start_turnover_before = $_GET['start_order_id'];
+    }
+    $end_order_id = '';
+    if (isset($_GET['end_order_id'])) {
+	    $end_turnover_after = $_GET['end_order_id'];
+    }
+?>
+<br /><br />
+	<?php if (count($_itemsCollection)) : ?>
+	<div class="reservations-toolbar row-fluid">
+		<div class="span7">
+			<?php echo $this->getPagerHtml(); ?>
+		</div>
+		<div class="span4">
+			<label for="res_sort_by"><?php echo $this->__('Sort by:') ?></label>
+			<select name="res_sort_by" id="res_sort_by" onchange="resOrderBy(this.value);">
+				<option value="order_id" <?php if ($_orderBy == 'order_id') : ?>selected="selected"<?php endif; ?>><?php echo $this->__('Order ID') ?></option>
+				<option value="name" <?php if ($_orderBy == 'name') : ?>selected="selected"<?php endif; ?>><?php echo $this->__('Product Name') ?></option>
+				<option value="qty_ordered" <?php if ($_orderBy == 'qty_ordered') : ?>selected="selected"<?php endif; ?>><?php echo $this->__('QTY') ?></option>
+				<option value="start_turnover_before" <?php if ($_orderBy == 'start_turnover_before') : ?>selected="selected"<?php endif; ?>><?php echo $this->__('Start Date') ?></option>
+				<option value="end_turnover_after" <?php if ($_orderBy == 'end_turnover_after') : ?>selected="selected"<?php endif; ?>><?php echo $this->__('End Date') ?></option>
+			</select>
+			<?php if ($_orderDirection == 'desc') : ?>
+				<a title="<?php echo $this->__('Set Ascending Direction') ?>" href="#" onclick="resOrderDir('asc'); return false;" ><img class="v-middle" alt="<?php echo $this->__('Set Ascending Direction') ?>" src="<?php echo $this->getSkinUrl('images/i_asc_arrow.gif') ?>" /></a>
+			<?php else : ?>
+				<a title="<?php echo $this->__('Set Descending Direction') ?>" href="#" onclick="resOrderDir('desc'); return false;" ><img class="v-middle" alt="<?php echo $this->__('Set Descending Direction') ?>" src="<?php echo $this->getSkinUrl('images/i_desc_arrow.gif') ?>" /></a>
+			<?php endif; ?>
+			
+		</div>
+	</div>
+	<?php endif; ?>
+    <table class="listings-table data-table">
+        <colgroup>
+            <col />
+            <col />
+            <col />
+            <col />
+            <col />
+            <col />
+            <col />
+            <col />
+        </colgroup>
+        <thead>
+        <th><?php echo $this->__('Order #') ?>
+        	<div class="row-fluid">
+        		<div class="span6">
+        			<input type="text" class="input-text" id="start_order_id" name="start_order_id" value="<?php echo $start_order_id ?>" />
+        		</div>
+        		<div class="span6">
+        			<input type="text" class="input-text" id="end_order_id" name="end_order_id" value="<?php echo $end_order_id ?>"/>
+        		</div>
+        		</div>
+        	</div>
+        	<div class="a-right">
+        		<button class="button" onclick="$('start_order_id').value = ''; $('end_order_id').value = ''; resFindOrders();"><span><span><?php echo $this->__('Reset') ?></span></span></button>
+        		<button class="button" onclick="resFindOrders();"><span><span><?php echo $this->__('Go') ?></span></span></button>
+        	</div>
+        </th>
+        <th><?php echo $this->__('Main Photo') ?></th>
+        <th><?php echo $this->__('Product Name') ?></th>
+        <th><?php echo $this->__('Rental Period') ?></th>
+        <th><?php echo $this->__('Delivery') ?></th>
+        <th><?php echo $this->__('Dates Reserved') ?>
+        	<div class="row-fluid">
+        		<div class="span6">
+        			<input type="text" class="input-text datePicker" id="start_turnover_before" name="start_turnover_before" value="<?php echo $start_turnover_before ?>" />
+        		</div>
+        		<div class="span6">
+        			<input type="text" class="input-text datePicker" id="end_turnover_after" name="end_turnover_after" value="<?php echo $end_turnover_after ?>"/>
+        		</div>
+        		</div>
+        	</div>
+        	<div class="a-right">
+        		<button class="button" onclick="$('start_turnover_before').value = ''; $('end_turnover_after').value = ''; resFindDates();"><span><span><?php echo $this->__('Reset') ?></span></span></button>
+        		<button class="button" onclick="resFindDates();"><span><span><?php echo $this->__('Go') ?></span></span></button>
+        	</div>
+        </th>
+        <th><?php echo $this->__('OTY') ?></th>
+        <th><?php echo $this->__('Messages') ?></th>
+        </thead>
+        <tbody>
+        <?php if (!count($_itemsCollection)) : ?>
+		    <tr><td class="a-center" colspan="8">
+		    <h3><?php echo $this->__('No Reservations') ?></h3>
+		    </td></tr>
+		<?php else : ?>
+            <?php $_i = 0 ?>
+            <?php /*foreach ($_orderCollection AS $_order) : */ ?>
+
+                <?php foreach ($_itemsCollection AS $_item) : ?>
+                	<?php $_item->setVendorId($_item->getOrder()->getVendorId()) ?>
+                    <tr>
+                        <td class="a-center"><?php echo $_item->getOrder()->getIncrementId() ?></td>
+                        <td class="a-center">
+                            <?php
+                                $_product = Mage::getModel('catalog/product')->loadByAttribute('sku',$_item->getSku());
+                                if ($_product) :
+                            ?>
+                                    <img src="<?php echo $this->helper('catalog/image')->init($_product, 'small_image')->resize(75); ?>"  alt="<?php echo $this->stripTags($this->getImageLabel($_product, 'small_image'), null, true) ?>" />
+                            <?php endif; ?>
+                        </td>
+                        <td class="a-center">
+                            <?php echo $_item->getName() ?>
+                        </td>
+                        <td class="a-center">
+                            <?php
+                                $_options = $_item->getProductOptions();
+                                $_info = $_options['info_buyRequest'];
+                                //echo $_info['start_date'] . ' - ' . $_info['end_date'];
+                                $_period = (strtotime($_item->getData('end_turnover_after')) - strtotime($_item->getData('start_turnover_before')));
+                                $_days = $_period / 86400;
+                                echo ceil($_days).' '.$this->__('Days');
+                            ?>
+                        </td>
+                        <td class="a-center">
+                            <?php echo $this->__('Pick-Up') ?>
+                        </td>
+                        <td class="a-center">
+                            <?php echo $_item->getData('start_turnover_before') . ' - ' . $_item->getData('end_turnover_after'); ?>
+                        </td>
+                        <td class="a-center">
+                            <?php echo (int)$_item->getQtyOrdered() ?>
+                        </td>
+                        <td  class="a-center">
+                        	<?php if ($_item->getVendorId()) : ?>
+				            <?php
+				            $_vendor = Mage::getModel('customer/customer')->load($_item->getVendorId());
+				            if ($_vendor->getId()) :
+				                ?>
+				                <?php
+				                	$_messages = Mage::getModel('vendor/message')->getCollection()->addFieldToFilter('order_item_id', array('eq' => $_item->getId()));
+				                ?>
+				                <a href="#" class="nobr" onclick="$('vendorCustomerMessages<?php echo $_item->getId() ?>').toggle(); return false;"><?php echo $this->__('Messages (%s)', $_messages->count()) ?>
+				            <?php endif; ?>
+				        <?php endif; ?>
+                        </td>
+                    </tr>
+                    <?php if ($_item->getVendorId() && $_vendor->getId()) : ?>
+						<tr class="vendor_customer_messages" style="display: none;" id="vendorCustomerMessages<?php echo $_item->getId() ?>">
+							<td colspan="8">
+								
+								<form method="post" action="<?php echo $this->getUrl('vendor/profile/send') ?>" class="vendor_message_form" id="vendorMessageForm<?php echo $_item->getId() ?>">
+									<h3><?php echo $this->__('Messages for %s', $this->htmlEscape($_item->getName())) ?></h3>
+									<?php if (count($_messages)) : ?>
+									<dl class="vendor_messages_list">
+										<?php foreach ($_messages AS $_message) : ?>
+											<?php $from = Mage::getModel('customer/customer')->load($_message->getFromId()) ?>
+											<dt><?php echo $this->__('From:') ?> <?php echo $from->getFirstname().' '.$from->getLastname() ?></dt>
+											<dd>
+												<div class="vendor_message_date">
+													<?php echo $this->__('Date: %s', date('n.j.y at g:ia e', strtotime($_message->getCreatedAt()))) ?>
+												</div>
+												<div class="vendor_message_body">
+													<?php echo nl2br($this->htmlEscape($_message->getComment())) ?>
+												</div>
+											</dd>
+										<?php endforeach; ?>
+									</dl>
+								<?php endif; ?>
+									<input type="hidden" name="from_id" value="<?php echo $_item->getVendorId() ?>" />
+									<input type="hidden" name="to_id" value="<?php echo $_item->getOrder()->getCustomerId() ?>" />
+									<input type="hidden" name="order_item_id" value="<?php echo $_item->getId() ?>" />
+									<input type="hidden" name="return_url" value="<?php echo $this->getUrl('vendor_admin/listing/reservations') ?>" />
+									<p>
+										<textarea name="comment" maxlength="1000" class="required-entry"></textarea>
+									</p>
+									<p>
+										<button type="button" class="button" onclick="vendorMessageForm<?php echo $_item->getId() ?>.submit();"><span><span><?php echo $this->__('Send Message') ?></span></span></button>
+									</p>
+								</form>
+								<script type="text/javascript">
+									var vendorMessageForm<?php echo $_item->getId() ?> = new VarienForm('vendorMessageForm<?php echo $_item->getId() ?>', true);
+								</script>
+							</td>
+						</tr>
+					<?php endif; ?>
+                    <?php $_i++ ?>
+                <?php endforeach; ?>
+            <?php /* endforeach; */ ?>
+        </tbody>
+        <?php endif; ?>
+    </table>
+    <?php echo $this->getPagerHtml(); ?>
+
+<?php /*
+<script type="text/javascript">
+    $('showAllReservations').observe('click', function() {
+        $(this).remove();
+        $$('.hidden-reservation').each(function(el) {
+            $(el).show();
+        });
+    });
+
+</script>
+
+*/ ?>
+<script type="text/javascript">
+	<?php if (isset($_GET['p'])) : ?>
+		var resPage = <?php echo $_GET['p'] ?>;
+	<?php else : ?>
+		var resPage = false;
+	<?php endif; ?>
+	
+	<?php if (isset($_GET['order'])) : ?>
+		var resOrder = '<?php echo $_GET['order'] ?>';
+	<?php else : ?>
+		var resOrder = false;
+	<?php endif; ?>
+	
+	<?php if (isset($_GET['dir'])) : ?>
+		var resDirection = '<?php echo $_GET['dir'] ?>';
+	<?php else : ?>
+		var resDirection = false;
+	<?php endif; ?>
+	
+	<?php if (!$start_turnover_before) : ?>
+		var start_turnover_before = false;
+	<?php else : ?>
+		var start_turnover_before = '<?php echo $start_turnover_before ?>';
+	<?php endif; ?>
+	
+	
+	<?php if (!$end_turnover_after) : ?>
+		var end_turnover_after = false;
+	<?php else : ?>
+		var end_turnover_after = '<?php echo $end_turnover_after ?>';
+	<?php endif; ?>
+	
+	<?php if (!$start_order_id) : ?>
+		var start_order_id = false;
+	<?php else : ?>
+		var start_order_id = '<?php echo $start_order_id ?>';
+	<?php endif; ?>
+	
+	
+	<?php if (!$end_order_id) : ?>
+		var end_order_id = false;
+	<?php else : ?>
+		var end_order_id = '<?php echo $end_order_id ?>';
+	<?php endif; ?>
+	
+	function resOrderDir(dir)
+	{
+		resDirection = dir;
+		resOrderBy($('res_sort_by').value);
+	}
+	
+	function resOrderBy(order) {
+		resOrder = order;
+		filterGrid();
+	}
+	
+	
+	function filterGrid()
+	{
+		var url = '<?php echo $this->getUrl('vendor/listing/reservations') ?>?';
+		if (resPage) {
+			url += 'p='+resPage+'&';
+		}
+		if (resOrder) {
+			url += 'order='+resOrder+'&';
+		}
+		if (resDirection) {
+			url += 'dir='+resDirection+'&';
+		}
+		if (start_turnover_before) {
+			url += 'start_turnover_before='+start_turnover_before+'&';
+		}
+		if (end_turnover_after) {
+			url += 'end_turnover_after='+end_turnover_after+'&';
+		}
+		if (start_order_id) {
+			url += 'start_order_id='+start_order_id+'&';
+		}
+		if (end_order_id) {
+			url += 'end_order_id='+end_order_id+'&';
+		}
+		window.location.href = url;
+	}
+	
+	function resFindDates()
+	{
+		if ($('start_turnover_before').value) {
+			start_turnover_before = $('start_turnover_before').value;
+		} else {
+			start_turnover_before = false;
+		}
+		if ($('end_turnover_after').value) {
+			end_turnover_after = $('end_turnover_after').value;
+		} else {
+			end_turnover_after = false;
+		}
+		filterGrid();
+	}
+	
+	function resFindOrders()
+	{
+		if ($('start_order_id').value) {
+			start_order_id = $('start_order_id').value;
+		} else {
+			start_order_id = false;
+		}
+		if ($('end_order_id').value) {
+			end_order_id = $('end_order_id').value;
+		} else {
+			end_order_id = false;
+		}
+		filterGrid();
+	}
+	
+	
+	jQuery('.datePicker').datepick({
+        minDate: new Date(2000, 12-1, 25),
+        monthsToShow: 0,
+        rangeSelect: false,
+        alignment: 'bottom',
+        changeMonth: false,
+        firstDay: 0,
+        changeYear: false,
+        numberOfMonths: <?php echo Mage::getStoreConfig(ITwebexperts_Payperrentals_Helper_Data::XML_PATH_APPEARANCE_CALENDAR_PAGES);?>,
+        showStatus: true,
+        dateFormat: 'mm/dd/yy'
+    });
+	
+</script>

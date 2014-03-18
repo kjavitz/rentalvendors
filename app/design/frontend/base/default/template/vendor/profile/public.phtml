@@ -1,0 +1,89 @@
+<?php
+    $_vendor = $this->getVendor();
+    $_billingAddress = $_vendor->getDefaultBillingAddress();
+    if (!$_billingAddress) {
+        $_billingAddress = new Varien_Object();
+    }
+?>
+<div class="row-fluid">
+    <div class="span4">
+        <div class="vendorAvatar"><?php if ($_vendor->getVendorAvatar()) : ?>
+            <img src="<?php echo Mage::getBaseUrl('media') .DS.'vendor'.$_vendor->getVendorAvatar() ?>" />
+        <?php endif; ?></div>
+        <ul class="vendor-social">
+            <?php if ($_vendor->getVendorFacebook()) : ?>
+                <li class="vendor-social-facebook"><a href="<?php echo $_vendor->getVendorFacebook() ?>"><?php echo $this->__('Facebook') ?></a></li>
+            <?php endif; ?>
+            <?php if ($_vendor->getVendorTwitter()) : ?>
+                <li class="vendor-social-twitter"><a href="<?php echo $_vendor->getVendorTwitter() ?>"><?php echo $this->__('Twitter') ?></a></li>
+            <?php endif; ?>
+            <?php if ($_vendor->getVendorGoogle()) : ?>
+                <li class="vendor-social-google"><a href="<?php echo $_vendor->getVendorGoogle() ?>"><?php echo $this->__('Facebook') ?></a></li>
+            <?php endif; ?>
+        </ul>
+    </div>
+    <div class="span8">
+        <h1><?php echo $_vendor->getVendorNickname() ?></h1>
+        <ul class="vendor-simple-list">
+        	<?php if ($this->getRatingSummary() !== false) : ?>
+        		<li style="overflow: hidden; zoom: 1;"><strong style="float: left;"><?php echo $this->__('Hostess Rating:') ?>&nbsp;</strong>
+        			<div class="rating-box" style="float: left; position: relative; top: 3px;">
+		                <div class="rating" style="width:<?php echo $this->getRatingSummary() ?>%"></div>
+		            </div>
+        		</li>
+        	<?php endif; ?>
+            <li><strong><?php echo $this->__('Location:') ?></strong> <?php echo $_billingAddress->getPostcode() ?></li>
+            <li><strong><?php echo $this->__('Hostess Since:') ?></strong> <?php echo date('F Y', strtotime($_vendor->getCreatedAt())) ?></li>
+            <li><strong><?php echo $this->__('Average Respomse Time:') ?></strong> <?php echo $this->__('%s days', 2) ?></li>
+            <li><strong><?php echo $this->__('Blog or Website:') ?></strong> <a href="<?php echo $_vendor->getVendorWebsite() ?>"><?php echo $_vendor->getVendorWebsite() ?></a></li>
+        </ul>
+
+        <h1 class="vendor-about-headline"><?php echo $this->__('A bit about me...') ?></h1>
+        <div class="vendor-about"><?php echo $_vendor->getVendorDescription() ?></div>
+    </div>
+</div>
+
+<ul class="product-tabs product-tabs-vendor">
+    <li id="product_tabs_products" class="active first"><a href="#"><?php echo $this->__('My Shop') ?></a></li>
+    <li id="product_tabs_photos"><a href="#"><?php echo $this->__('Event Photos') ?></a></li>
+    <li id="product_tabs_feedback" class="last"><a href="#"><?php echo $this->__('Feedback') ?></a></li>
+</ul>
+
+<div class="product-tabs-content" id="product_tabs_products_contents"><?php echo $this->getChildHtml('vendorProductList') ?></div>
+<div class="product-tabs-content" id="product_tabs_photos_contents"><?php echo $this->getChildHtml('vendorProfilePhotos') ?></div>
+<div class="product-tabs-content" id="product_tabs_feedback_contents"><?php echo $this->getChildHtml('vendorReviewList') ?></div>
+
+<script type="text/javascript">
+    //<![CDATA[
+    Varien.Tabs = Class.create();
+    Varien.Tabs.prototype = {
+        initialize: function(selector) {
+            var self=this;
+            $$(selector+' a').each(this.initTab.bind(this));
+        },
+
+        initTab: function(el) {
+            el.href = 'javascript:void(0)';
+            if ($(el.parentNode).hasClassName('active')) {
+                this.showContent(el);
+            }
+            el.observe('click', this.showContent.bind(this, el));
+        },
+
+        showContent: function(a) {
+            var li = $(a.parentNode), ul = $(li.parentNode);
+            ul.select('li', 'ol').each(function(el){
+                var contents = $(el.id+'_contents');
+                if (el==li) {
+                    el.addClassName('active');
+                    contents.show();
+                } else {
+                    el.removeClassName('active');
+                    contents.hide();
+                }
+            });
+        }
+    }
+    new Varien.Tabs('.product-tabs');
+    //]]>
+</script>

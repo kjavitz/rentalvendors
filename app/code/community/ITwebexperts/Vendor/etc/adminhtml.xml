@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<config>
+    <menu>
+        <vendor module="vendor">
+            <title>Vendor</title>
+            <sort_order>72</sort_order>
+            <children>
+                <reports>
+                    <title><![CDATA[Reports]]></title>
+                    <sort_order>1</sort_order>
+                    <children>
+                        <commissionreport module="vendor">
+                            <title>Commission Report</title>
+                            <sort_order>10</sort_order>
+                            <action>vendor_admin/adminhtml_commissionreport</action>
+                        </commissionreport>
+                    </children>
+                </reports>
+                <reviews>
+                	<title><![CDATA[Reviews]]></title>
+                    <sort_order>2</sort_order>
+                    <children>
+                        <review module="vendor">
+                            <title>Vendor Reviews</title>
+                            <sort_order>10</sort_order>
+                            <action>vendor_admin/adminhtml_review</action>
+                        </review>
+                    </children>
+                </reviews>
+            </children>
+        </vendor>
+    </menu>
+    <acl>
+        <resources>
+            <all>
+                <title>Allow Everything</title>
+            </all>
+            <admin>
+                <children>
+                    <vendor>
+                        <title>Vendor Module</title>
+                        <children>
+                            <commissionreport>
+                                <title>Inventory Report</title>
+                            </commissionreport>
+                            <review>
+                                <title>Inventory Report</title>
+                            </review>
+                        </children>
+                    </vendor>
+                    <system>
+                        <children>
+                            <config>
+                                <children>
+                                    <vendor>
+                                        <title>IT Web Experts Section - Vendor Module</title>
+                                    </vendor>
+                                </children>
+                            </config>
+                        </children>
+                    </system>
+                </children>
+            </admin>
+        </resources>
+    </acl>
+</config>

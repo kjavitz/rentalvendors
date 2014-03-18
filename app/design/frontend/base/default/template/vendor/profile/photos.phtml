@@ -1,0 +1,82 @@
+<?php
+    $_gallery = $this->getGallery();
+    $_galleryMatrix = array(
+        0 => array(),
+        1 => array(),
+        2 => array(),
+        3 => array()
+    );
+    $i = 0;
+    foreach ($_gallery AS $_item) {
+        if ($i == 4) {
+            $i = 0;
+        }
+        $_galleryMatrix[$i][] = Mage::getBaseUrl('media') .DS.'vendor'.DS.'gallery'.$_item->getPath();
+        $i++;
+    }
+?>
+<?php $i = 0; ?>
+<div class="row-fluid vendor-photos">
+    <div class="span3">
+        <?php foreach ($_galleryMatrix[0] AS $_item) : ?>
+            <a href="<?php echo $_item ?>" class="ma-a-lighbox" rel="lightbox[<?php echo $i ?>]"><img src="<?php echo $_item ?>" /></a>
+            <?php $i++; ?>
+        <?php endforeach; ?>
+    </div>
+    <div class="span3">
+        <?php foreach ($_galleryMatrix[1] AS $_item) : ?>
+            <a href="<?php echo $_item ?>" class="ma-a-lighbox" rel="lightbox[<?php echo $i ?>]"><img src="<?php echo $_item ?>" /></a>
+            <?php $i++; ?>
+        <?php endforeach; ?>
+    </div>
+    <div class="span3">
+        <?php foreach ($_galleryMatrix[2] AS $_item) : ?>
+            <a href="<?php echo $_item ?>" class="ma-a-lighbox" rel="lightbox[<?php echo $i ?>]"><img src="<?php echo $_item ?>" /></a>
+            <?php $i++; ?>
+        <?php endforeach; ?>
+    </div>
+    <div class="span3">
+        <?php foreach ($_galleryMatrix[3] AS $_item) : ?>
+            <a href="<?php echo $_item ?>" class="ma-a-lighbox" rel="lightbox[<?php echo $i ?>]"><img src="<?php echo $_item ?>" /></a>
+            <?php $i++; ?>
+        <?php endforeach; ?>
+    </div>
+</div>
+
+<script type="text/javascript">
+    Lightbox.prototype.updateImageList = function() {
+        this.updateImageList = Prototype.emptyFunction;
+        var $this = this;
+        $$('.ma-a-lighbox').each(function(el) {
+            $(el).observe('click', function(event) {
+                event.stop();
+                $this.start(this);
+            });
+        });
+    };
+    function initLightbox(){
+        new Lightbox({
+            fileLoadingImage: '<?php echo $this->getSkinUrl('magentothem/images/loading.gif') ?>',
+            fileBottomNavCloseImage: '<?php echo $this->getSkinUrl('magentothem/images/closelabel.gif') ?>',
+            overlayOpacity: 0.8,   // controls transparency of shadow overlay
+            animate: true,         // toggles resizing animations
+            resizeSpeed: 7,        // controls the speed of the image resizing animations (1=slowest and 10=fastest)
+            borderSize: 10,
+            // When grouping images this is used to write: Image # of #.
+            // Change it for non-english localization
+            labelImage: "Image",
+            labelOf: "of"
+        });
+    }
+
+
+    if (Prototype.Browser.IE) {
+        Event.observe(window, 'load', function(){ //KB927917 fix
+            initLightbox();
+        });
+    } else {
+        document.observe("dom:loaded", function(){
+            initLightbox();
+        });
+    }
+</script>

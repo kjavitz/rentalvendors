@@ -1,0 +1,386 @@
+<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE_AFL.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/afl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Magento to newer
+ * versions in the future. If you wish to customize Magento for your
+ * needs please refer to http://www.magentocommerce.com for more information.
+ *
+ * @category    design
+ * @package     base_default
+ * @copyright   Copyright (c) 2013 Magento Inc. (http://www.magentocommerce.com)
+ * @license     http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ */
+?>
+<?php
+$_customer = $this->helper('customer')->getCustomer();
+$_defaultAddress = $this->getDefaultVendorAddress();
+$_additionalAddresses = $this->getAdditionalAddresses();
+if (!$_defaultAddress) {
+    $_defaultAddress = new Varien_Object();
+    $_defaultAddress->setId('new_100');
+}
+$_gallery = Mage::getModel('vendor/gallery')
+    ->getCollection()
+    ->addFieldToFilter('customer_id', array('eq' => $_customer->getId()));
+$_shippingMethods = Mage::getModel('vendor/shippingrate')->getCollection()->addFieldToFilter('customer_id', array('eq' => $_customer->getId()));
+
+?>
+<div class="vendor_account_settings">
+    <?php echo $this->getMessagesBlock()->getGroupedHtml() ?>
+    <div class="row-fluid">
+        <div class="span6">
+            <form class="account-info" method="post" action="<?php echo $this->getUrl('*/*/saveSettings') ?>" id="form-validate">
+                <input type="hidden" name="vendor_is_public" id="vendorIsPublic" value="<?php echo $_customer->getVendorIsPublic() ? 1 : 0 ?>" />
+                <div class="form-row ">
+                    <h3><?php echo $this->__('My Profile') ?></h3>
+                    <div class="row-fluid"><div class="form-field span5">
+                            <label for=""><?php echo $this->__('Nickname or Username*') ?></label>
+                            <input type="text" name="vendor_nickname" class="input-text required-entry" value="<?php echo $_customer->getVendorNickname() ?>" />
+                        </div></div>
+                </div>
+                <div id="vendorAddresses">
+                    <div id="vendorDefaultAddress" class="vendorAddress">
+                        <div class="form-row">
+                            <h3><?php echo $this->__('Default Address') ?></h3>
+                            <input type="hidden" name="address[<?php echo $_defaultAddress->getId() ?>][id]" value="<?php echo $_defaultAddress->getId() ?>" />
+                            <input type="hidden" name="address[<?php echo $_defaultAddress->getId() ?>][country_id]" value="US" />
+                            <input type="hidden" name="address[<?php echo $_defaultAddress->getId() ?>][default_vendor]" value="1" />
+
+                            <input type="hidden" name="address[<?php echo $_defaultAddress->getId() ?>][default_billing]" value="<?php echo $_defaultAddress->getDefaultBilling() ? '1' : '0' ?>" />
+                            <input type="hidden" name="address[<?php echo $_defaultAddress->getId() ?>][default_shipping]" value="<?php echo $_defaultAddress->getDefaultShipping() ? '1' : '0' ?>" />
+                            <div class="row-fluid">
+                                <div class="form-field span6">
+                                    <label for=""><?php echo $this->__('First Name*') ?></label>
+                                    <input type="text" name="address[<?php echo $_defaultAddress->getId() ?>][firstname]" class="input-text required-entry" value="<?php echo $_defaultAddress->getFirstname() ?>" />
+                                </div>
+                                <div class="form-field span6">
+                                    <label for=""><?php echo $this->__('Last Name*') ?></label>
+                                    <input type="text" name="address[<?php echo $_defaultAddress->getId() ?>][lastname]" class="input-text required-entry" value="<?php echo $_defaultAddress->getLastname() ?>" />
+                                </div>
+                            </div>
+                            <div class="form-field full-width">
+                                <label for=""><?php echo $this->__('Address*') ?></label>
+                                <input type="text" name="address[<?php echo $_defaultAddress->getId() ?>][street][]" class="input-text required-entry" value="<?php echo $_defaultAddress->getStreet1() ?>" />
+                            </div>
+                            <div class="row-fluid">
+                                <div class="form-field span5">
+                                    <label for=""><?php echo $this->__('City*') ?></label>
+                                    <input type="text" name="address[<?php echo $_defaultAddress->getId() ?>][city]" class="input-text required-entry" value="<?php echo $_defaultAddress->getCity() ?>" />
+                                </div>
+                                <div class="form-field span3">
+                                    <label for=""><?php echo $this->__('State*') ?></label>
+                                    <input type="text" name="address[<?php echo $_defaultAddress->getId() ?>][region]" class="input-text required-entry" value="<?php echo $_defaultAddress->getRegion() ?>" />
+                                </div>
+                                <div class="form-field span4">
+                                    <label for=""><?php echo $this->__('Zipcode*') ?></label>
+                                    <input type="text" name="address[<?php echo $_defaultAddress->getId() ?>][postcode]" class="input-text required-entry" value="<?php echo $_defaultAddress->getPostcode() ?>" />
+                                </div>
+                            </div>
+                            <div class="form-field full-width">
+                                <label for=""><?php echo $this->__('Contact Phone Number *') ?></label>
+                                <input type="text" name="address[<?php echo $_defaultAddress->getId() ?>][telephone]" class="input-text required-entry" value="<?php echo $_defaultAddress->getTelephone() ?>"   />
+                            </div>
+                        </div>
+                    </div>
+                    <?php $i = 1; ?>
+                    <?php foreach($_additionalAddresses AS $_address) : ?>
+                        <div id="vendorDefaultAddress" class="vendorAddress">
+                            <div class="form-row">
+                                <h3><?php echo $this->__('Additional Address %s', $i) ?></h3>
+                                <input type="hidden" name="address[<?php echo $_address->getId() ?>][id]" value="<?php echo $_defaultAddress->getId() ?>" />
+                                <input type="hidden" name="address[<?php echo $_address->getId() ?>][country_id]" value="US" />
+                                <input type="hidden" name="address[<?php echo $_address->getId() ?>][default_billing]" value="<?php echo $_address->getDefaultBilling() ? '1' : '0' ?>" />
+								<input type="hidden" name="address[<?php echo $_address->getId() ?>][default_shipping]" value="<?php echo $_address->getDefaultShipping() ? '1' : '0' ?>" />
+                                <div class="row-fluid">
+                                    <div class="form-field span6">
+                                        <label for=""><?php echo $this->__('First Name*') ?></label>
+                                        <input type="text" name="address[<?php echo $_address->getId() ?>][firstname]" class="input-text required-entry" value="<?php echo $_address->getFirstname() ?>" />
+                                    </div>
+                                    <div class="form-field span6">
+                                        <label for=""><?php echo $this->__('Last Name*') ?></label>
+                                        <input type="text" name="address[<?php echo $_address->getId() ?>][lastname]" class="input-text required-entry" value="<?php echo $_address->getLastname() ?>" />
+                                    </div>
+                                </div>
+                                <div class="form-field full-width">
+                                    <label for=""><?php echo $this->__('Address*') ?></label>
+                                    <input type="text" name="address[<?php echo $_address->getId() ?>][street][]" class="input-text required-entry" value="<?php echo $_address->getStreet1() ?>" />
+                                </div>
+                                <div class="row-fluid">
+                                    <div class="form-field span5">
+                                        <label for=""><?php echo $this->__('City*') ?></label>
+                                        <input type="text" name="address[<?php echo $_address->getId() ?>][city]" class="input-text required-entry" value="<?php echo $_address->getCity() ?>" />
+                                    </div>
+                                    <div class="form-field span3">
+                                        <label for=""><?php echo $this->__('State*') ?></label>
+                                        <input type="text" name="address[<?php echo $_address->getId() ?>][region]" class="input-text required-entry" value="<?php echo $_address->getRegion() ?>" />
+                                    </div>
+                                    <div class="form-field span4">
+                                        <label for=""><?php echo $this->__('Zipcode*') ?></label>
+                                        <input type="text" name="address[<?php echo $_address->getId() ?>][postcode]" class="input-text required-entry" value="<?php echo $_address->getPostcode() ?>" />
+                                    </div>
+                                </div>
+                                <div class="form-field full-width">
+                                    <label for=""><?php echo $this->__('Contact Phone Number *') ?></label>
+                                    <input type="text" name="address[<?php echo $_address->getId() ?>][telephone]" class="input-text required-entry" value="<?php echo $_address->getTelephone() ?>"   />
+                                </div>
+                            </div>
+                        </div>
+                        <?php $i++ ?>
+                    <?php endforeach; ?>
+                </div>
+                <div class="form-row">
+                    <div class="form-field full-width">
+                        <button class="button" type="button" onclick="addAddress();"><span><span><?php echo $this->__('Add Address') ?></span></span></button>
+                    </div>
+                </div>
+                <div >
+                    <div class="form-field full-width">
+                        <label for=""><?php echo $this->__('Your Blog or Website URL') ?></label>
+                        <input type="text" name="vendor_website" class="input-text" value="<?php echo $_customer->getVendorWebsite() ?>" />
+                    </div>
+                </div>
+                <div class="form-row" >
+                    <div class="form-field full-width">
+                        <label for=""><?php echo $this->__('Facebook Page') ?></label>
+                        <input type="text" name="vendor_facebook" class="input-text" value="<?php echo $_customer->getVendorFacebook() ?>" />
+                    </div>
+                    <div class="form-field full-width">
+                        <label for=""><?php echo $this->__('Twitter Page') ?></label>
+                        <input type="text" name="vendor_twitter" class="input-text" value="<?php echo $_customer->getVendorTwitter() ?>" />
+                    </div>
+                    <div class="form-field full-width">
+                        <label for=""><?php echo $this->__('Google + Page') ?></label>
+                        <input type="text" name="vendor_google" class="input-text" value="<?php echo $_customer->getVendorGoogle() ?>" />
+                    </div>
+                    <div class="form-field full-width">
+                        <label for=""><?php echo $this->__('A little bit about yourself *') ?></label>
+                        <textarea name="vendor_description" class="required-entry" maxlength="500"><?php echo $_customer->getVendorDescription() ?></textarea>
+                        <label for=""><?php echo $this->__('500 Characters Max') ?></label>
+                    </div>
+                </div>
+                <div class="form-row" style="border-bottom: none; width: 150%;">
+                	<h3><?php echo $this->__('My Shipping Settings') ?></h3>
+            		<div class="row-fluid" style="font-size: 11px;">
+            			<div class="span3">
+            				<strong><?php echo $this->__('Method Name') ?></strong>
+            			</div>
+            			<div class="span2">
+            				<strong><?php echo $this->__('Cost') ?></strong>
+            			</div>
+            			<div class="span2">
+                			<strong><?php echo $this->__('Per Product/Order') ?></strong>
+            			</div>
+            			<div class="span4">
+            				<strong><?php echo $this->__('Zip Codes') ?></strong>
+            			</div>
+            			<div class="span1">
+            				<?php echo $this->__('Pickup?') ?>
+            			</div>
+            		</div>
+            		<div id="shippingMedhotds">
+            			<?php foreach ($_shippingMethods AS $_method) : ?>
+            				<div class="vendorShipping">
+							    <div class="row-fluid">
+							        <div class="span3"><input type="text" value="<?php echo $_method->getRateName() ?>" class="input-text required-entry" name="shipping[0][rate_name]"></div>
+							        <div class="span2">$ <input type="text" style="width: 50%" value="<?php echo $_method->getPrice() ?>" class="input-text required-entry" name="shipping[0][price]"></div>
+							        <div class="span2">
+							            <select name="shipping[0][is_per_order]" class="required-entry">
+							                <option value="0" <?php if ($_method->getIsPerOrder() == 0) : ?>selected="selected"<?php endif; ?>>Per Product</option>
+							                <option value="1" <?php if ($_method->getIsPerOrder()) : ?>selected="selected"<?php endif; ?>>Per Order</option>
+							            </select>
+							        </div>
+							        <div class="span4"><input type="text" value="<?php echo $_method->getDestZipCodes() ?>" class="input-text" name="shipping[0][dest_zip_codes]"></div>
+							        <div class="span1"><input type="checkbox" value="1" name="shipping[0][is_pickup]" <?php if ($_method->getIsPickup()) : ?>checked="checked"<?php endif; ?>>&nbsp;<a onclick="removeShippingMethod(this);return false;" href="#">[x]</a></div>
+							    </div>
+							</div>
+            			<?php endforeach; ?>
+                	</div>
+                	<a href="#" id="addShippingMethod" onclick="addShippingMethod(); return false;"><?php echo $this->__('+ Add') ?></a>
+                </div>
+            </form>
+        </div>
+        <div class="span5">
+            <div class="account-info">
+                <div class="form-row">
+                    <h3><?php echo $this->__('Profile Photo') ?></h3>
+                    <form action="<?php echo $this->getUrl('*/*/saveAvatar') ?>" method="post" enctype="multipart/form-data" id="vendorAvatarForm">
+                        <div class="vendorAvatar"><?php if ($_customer->getVendorAvatar()) : ?>
+                            <img src="<?php echo Mage::getBaseUrl('media') .DS.'vendor'.$_customer->getVendorAvatar() ?>" />
+                        <?php endif; ?></div>
+                        <p><input type="file" name="vendor_avatar" class="required-entry" /></p>
+                        <button class="button" onclick="avatarForm.submit();"><span><span><?php echo $this->__('Upload') ?></span></span></button>
+                    </form>
+                </div>
+                <div class="form-row">
+                    <h3><?php echo $this->__('Event Photos') ?></h3>
+                    <form action="<?php echo $this->getUrl('*/*/saveGallery') ?>" method="post" enctype="multipart/form-data" id="vendorGalleryForm">
+                        <div><?php echo $this->__('Upload photos of your products here. Show others how fantastic your products look at actual parties and events!') ?></div>
+                        <ul class="vendor-gallery-thums row-fluid">
+                            <?php $i = 0 ?>
+                            <?php foreach ($_gallery AS $_item) : ?>
+                                <?php
+                                    $_class = '';
+                                    if ($i % 3 == 0) {
+                                        $_class = 'vgt-first';
+                                        if ($i > 0) {
+                                            echo '</ul><ul class="vendor-gallery-thums row-fluid">';
+                                        }
+                                    }
+                                    $i++;
+                                ?>
+                                <li class="span4 <?php echo $_class ?>"><img src="<?php echo Mage::getBaseUrl('media') .DS.'vendor'.DS.'gallery'.$_item->getPath() ?>" alt="Photo" /></li>
+                            <?php endforeach; ?>
+                        </ul>
+                        <p><input type="file" name="vendor_gallery_photo" class="required-entry" /></p>
+                        <button type="button" class="button" onclick="galleryForm.submit();"><span><span><?php echo $this->__('Add Photo') ?></span></span></button>
+                    </form>
+                </div>
+                <div class="form-row">
+                    <h3><?php echo $this->__('Feedback') ?></h3>
+                    <div><?php echo $this->__('Feedback on the website it provided by users who have rented your items. If you feel your feedback is incorrect or inappropriate please contact us.') ?></div>
+                    <br />
+                    <button type="button" class="button" onclick="window.location.href = '<?php echo $this->getUrl('contacts') ?>';"><span><span><?php echo $this->__('Contact') ?></span></span></button>
+                </div>
+            </div>
+        </div>
+        <div class="span1"></div>
+    </div>
+    <br clelar="all" />
+    <div class="row-fluid account-form-actions">
+        <div class="span5">
+            <?php echo $this->__('IMPORTANT: Once you’ve published your profile and storefront it will be public. You can hide your profile at any time as long as you do not have any current rentals. You can cancel your account so long as you do not have any pending rentals.') ?>
+        </div>
+        <div class="span6 a-right">
+            <button type="button" onclick="dataForm.submit();" class="button"><span><span><?php echo $this->__('Save') ?></span></span></button>
+            <?php if ($_customer->getVendorIsPublic()) : ?>
+                <button type="button" onclick="makePrivate();" class="button"><span><span><?php echo $this->__('Make Private') ?></span></span></button>
+                <p class="vendor_profile_link"><?php echo $this->__('<strong>Public Profile URL:</strong> %s', $this->getUrl('vendor/profile/public', array('id' => $_customer->getId()))) ?></p>
+            <?php else: ?>
+                <button type="button" onclick="makePublic();" class="button"><span><span><?php echo $this->__('Publish') ?></span></span></button>
+                <button type="button" onclick="setLocation('<?php echo $this->getUrl('vendor/profile/public', array('id' => $_customer->getId())) ?>');" class="button"><span><span><?php echo $this->__('Preview') ?></span></span></button>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    //<![CDATA[
+    var dataForm = new VarienForm('form-validate', true);
+    // Add address template
+    var newAddressTemplate = '<div class="vendorAddress">'
+        +    '<div class="form-row">'
+        +        '<h3><?php echo $this->__('Additional Address') ?> {{addressNum}}</h3>'
+        +        '<input type="hidden" name="address[{{index}}][id]" value="{{index}}" />'
+        +        '<input type="hidden" name="address[{{index}}][country_id]" value="US" />'
+        +        '<input type="hidden" name="address[{{index}}][default_billing]" value="0" />'
+        +        '<input type="hidden" name="address[{{index}}][default_shipping]" value="0" />'
+        +        '<div class="row-fluid">'
+        +            '<div class="form-field span6">'
+        +                '<label for=""><?php echo $this->__('First Name*') ?></label>'
+        +                '<input type="text" name="address[{{index}}][firstname]" class="input-text required-entry" value="" />'
+        +            '</div>'
+        +            '<div class="form-field span6">'
+        +                '<label for=""><?php echo $this->__('Last Name*') ?></label>'
+        +                '<input type="text" name="address[{{index}}][lastname]" class="input-text required-entry" value="" />'
+        +            '</div>'
+        +        '</div>'
+        +        '<div class="form-field full-width">'
+        +            '<label for=""><?php echo $this->__('Address*') ?></label>'
+        +            '<input type="text" name="address[{{index}}][street][]" class="input-text required-entry" value="" />'
+        +        '</div>'
+        +        '<div class="row-fluid">'
+        +            '<div class="form-field span5">'
+        +                '<label for=""><?php echo $this->__('City*') ?></label>'
+        +                '<input type="text" name="address[{{index}}][city]" class="input-text required-entry" value="" />'
+        +            '</div>'
+        +            '<div class="form-field span3">'
+        +                '<label for=""><?php echo $this->__('State*') ?></label>'
+        +                '<input type="text" name="address[{{index}}][region]" class="input-text required-entry" value="" />'
+        +            '</div>'
+        +            '<div class="form-field span4">'
+        +                '<label for=""><?php echo $this->__('Zipcode*') ?></label>'
+        +                '<input type="text" name="address[{{index}}][postcode]" class="input-text required-entry" value="" />'
+        +            '</div>'
+        +        '</div>'
+        +        '<div class="form-field full-width">'
+        +            '<label for=""><?php echo $this->__('Contact Phone Number *') ?></label>'
+        +            '<input type="text" name="address[{{index}}][telephone]" class="input-text required-entry" value=""   />'
+        +        '</div>'
+        +    '</div>'
+        +'</div>';
+    var addressTemplate = new Template(newAddressTemplate, new RegExp('(^|.|\\r|\\n)({{\\s*(\\w+)\\s*}})', ""));
+    // Add address function
+    var newAddressIncrement = 1000;
+    function addAddress()
+    {
+        var addressHtml = addressTemplate.evaluate({
+            index: 'new_'+newAddressIncrement,
+            addressNum: $$('.vendorAddress').length
+        });
+        $('vendorAddresses').insert({bottom: addressHtml});
+        newAddressIncrement++;
+    }
+    // Make public
+    function makePublic()
+    {
+        $('vendorIsPublic').value = 1;
+        dataForm.submit();
+    }
+    // Make private
+    function makePrivate()
+    {
+        $('vendorIsPublic').value = 0;
+        dataForm.submit();
+    }
+    // Avatar
+    var avatarForm = new VarienForm('vendorAvatarForm', true);
+    // Gallery
+    var galleryForm = new VarienForm('vendorGalleryForm', true);
+    // Shipping methods
+    var shippingMethodIncrement = $$('.vendorShipping').length;
+    var newShippingTemplate = '<div class="vendorShipping">'
+    +		'<div class="row-fluid">'
+	+			'<div class="span3">'
+	+				'<input type="text" name="shipping[{{index}}][rate_name]" class="input-text required-entry" value="" />'
+	+			'</div>'
+	+			'<div class="span2">'
+	+				'$ <input type="text" name="shipping[{{index}}][price]" class="input-text required-entry" value="" style="width: 50%" />'
+	+			'</div>'
+	+			'<div class="span2">'
+	+				'<select class="required-entry" name="shipping[{{index}}][is_per_order]"><option value="0">Per Product</option><option value="1">Per Order</option></select>'
+	+			'</div>'
+	+			'<div class="span4">'
+	+				'<input type="text" name="shipping[{{index}}][dest_zip_codes]" class="input-text" value="" />'
+	+			'</div>'
+	+			'<div class="span1">'
+	+               '<input type="checkbox" name="shipping[{{index}}][is_pickup]" value="1" />'
+	+				'&nbsp;<a href="#" onclick="removeShippingMethod(this);return false;">[x]</a>'
+	+			'</div>'
+    +		'</div>'
+    + 	'</div>';
+    var shippingTemplate = new Template(newShippingTemplate, new RegExp('(^|.|\\r|\\n)({{\\s*(\\w+)\\s*}})', ""));
+    function addShippingMethod()
+    {
+	    var shippingHtml = shippingTemplate.evaluate({
+            index: shippingMethodIncrement
+        });
+        $('shippingMedhotds').insert({bottom: shippingHtml});
+        shippingMethodIncrement++;
+    }
+    function removeShippingMethod(el) {
+	    $(el).up('.vendorShipping').remove();
+    }
+    //]]>
+</script>

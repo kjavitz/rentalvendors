@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+
+
+<layout>
+
+    <vendor_admin_adminhtml_commissionreport_index>
+        <reference name="content">
+            <block type="vendor/adminhtml_commissionreport" name="vendor.commissionreport.grid.container">
+            </block>
+        </reference>
+    </vendor_admin_adminhtml_commissionreport_index>
+
+</layout>

@@ -1,0 +1,66 @@
+<?php
+    $productCollection = $this->getProductCollection();
+?>
+<br /><br />
+<p><button type="button" class="button" onclick="window.location.href = '<?php echo $this->getUrl('vendor/listing/addproduct') ?>';"><span><span><?php echo $this->__('Add Listing') ?></span></span></button></p>
+
+<?php if (!count($productCollection)) : ?>
+    <br />
+    <h3><?php echo $this->__('No Products') ?></h3>
+    <br />
+<?php else : ?>
+    <table class="listings-table data-table">
+        <colgroup>
+            <col />
+            <col />
+            <col />
+            <col />
+            <col />
+            <col />
+            <col />
+            <col />
+        </colgroup>
+        <thead>
+            <th><?php echo $this->__('Item #') ?></th>
+            <th><?php echo $this->__('Main Photo') ?></th>
+            <th><?php echo $this->__('Product Name') ?></th>
+            <th><?php echo $this->__('Rental Price') ?></th>
+            <th><?php echo $this->__('Delivery') ?></th>
+            <th><?php echo $this->__('Status') ?></th>
+            <th><?php echo $this->__('Reservations') ?></th>
+            <th><?php echo $this->__('') ?></th>
+        </thead>
+        <tbody>
+            <?php foreach ($productCollection AS $_product) : ?>
+                <tr>
+                    <td class="a-center"><a href="<?php echo $this->getUrl('vendor/listing/editproduct', array('id' => $_product->getId())) ?>"><?php echo $_product->getId() ?></a></td>
+                    <td class="a-center"><img src="<?php echo $this->helper('catalog/image')->init($_product, 'small_image')->resize(75); ?>"  alt="<?php echo $this->stripTags($this->getImageLabel($_product, 'small_image'), null, true) ?>" /></td>
+                    <td class="a-center"><a href="<?php echo $this->getUrl('vendor/listing/editproduct', array('id' => $_product->getId())) ?>"><?php echo $_product->getName() ?></a></td>
+                    <td>
+                        <?php echo ITwebexperts_Payperrentals_Helper_Price::getPriceListHtml($_product) ?>
+                    </td>
+                    <td><?php echo $this->__('Pick-Up') ?></td>
+                    <td>
+                        <?php if ($_product->getStatus() == 2) : ?>
+                            <?php echo $this->__('Not
+Published') ?>
+                        <?php else : ?>
+                            <?php echo $this->__('Public') ?>
+                        <?php endif; ?>
+                    </td>
+                    <td>NA</td>
+                    <td class="a-center">
+                        <button type="button" class="button" onclick="window.location.href = '<?php echo $this->getUrl('vendor/listing/editproduct', array('id' => $_product->getId())) ?>';"><span><span><?php echo $this->__('Edit') ?></span></span></button><br />
+                        <?php if ($_product->getStatus() == 2) : ?>
+                            <a href="<?php echo $this->getUrl('vendor/listing/editproduct', array('id' => $_product->getId())) ?>"><?php echo $this->__('Activate') ?></a>
+                        <?php else: ?>
+                            <a href="<?php echo $this->getUrl('vendor/listing/editproduct', array('id' => $_product->getId())) ?>"><?php echo $this->__('Deactivate') ?></a>
+                        <?php endif; ?>
+
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+<?php endif; ?>
+

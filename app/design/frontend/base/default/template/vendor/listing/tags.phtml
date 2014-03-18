@@ -1,0 +1,12 @@
+<?php
+    $_collection = $this->_getCollection();
+?>
+<?php if ($_collection->count()) : ?>
+    <p><strong><?php echo $this->__('Tags:') ?></strong>
+    <?php $_tagsArray = array(); ?>
+    <?php foreach ($_collection AS $_tag) : ?>
+         <?php $_tagsArray[] = $_tag->getName() ?>
+    <?php endforeach; ?>
+    <?php echo implode(',', $_tagsArray) ?>
+    </p>
+<?php endif; ?>
